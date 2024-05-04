@@ -92,7 +92,7 @@ impl Component for Chat {
                             .map(|u| UserProfile {
                                 name: u.into(),
                                 avatar: format!(
-                                    "https://avatars.dicebear.com/api/adventurer-neutral/{}.svg",
+                                    "https://api.dicebear.com/8.x/adventurer-neutral/svg?seed={}",
                                     u
                                 )
                                 .into(),
@@ -130,14 +130,20 @@ impl Component for Chat {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let submit = ctx.link().callback(|_| Msg::SubmitMessage);
+        let (cur_user, _) = ctx.link().context::<User>(Callback::noop()).expect("Context to be set");
+        let cur_username = cur_user.username.borrow().clone();
         html! {
             <div class="flex w-screen">
                 <div class="flex-none w-56 h-screen bg-gray-100">
                     <div class="text-xl p-3">{"Users"}</div>
                     {
                         self.users.clone().iter().map(|u| {
+                            let mut color = "white";
+                            if u.name == cur_username {
+                                color = "green-400";
+                            }
                             html!{
-                                <div class="flex m-3 bg-white rounded-lg p-2">
+                                <div class={format!("flex m-3 bg-{color} rounded-lg p-2 border-solid border-2 border-black")}>
                                     <div>
                                         <img class="w-12 h-12 rounded-full" src={u.avatar.clone()} alt="avatar"/>
                                     </div>
@@ -155,13 +161,17 @@ impl Component for Chat {
                     }
                 </div>
                 <div class="grow h-screen flex flex-col">
-                    <div class="w-full h-14 border-b-2 border-gray-300"><div class="text-xl p-3">{"💬 Chat!"}</div></div>
+                    <div class="w-full h-14 border-b-2 border-gray-300"><div class="text-xl p-3">{"💬 Let's Chat!"}</div></div>
                     <div class="w-full grow overflow-auto border-b-2 border-gray-300">
                         {
                             self.messages.iter().map(|m| {
                                 let user = self.users.iter().find(|u| u.name == m.from).unwrap();
+                                let mut color = "gray-100";
+                                if user.name == cur_username {
+                                    color = "green-400"
+                                }
                                 html!{
-                                    <div class="flex items-end w-3/6 bg-gray-100 m-8 rounded-tl-lg rounded-tr-lg rounded-br-lg ">
+                                    <div class={format!("flex items-end w-3/6 bg-{} m-8 rounded-tl-lg rounded-tr-lg rounded-br-lg border-solid border-2 border-black", color)}>
                                         <img class="w-8 h-8 rounded-full m-3" src={user.avatar.clone()} alt="avatar"/>
                                         <div class="p-3">
                                             <div class="text-sm">
